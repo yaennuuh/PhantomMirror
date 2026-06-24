@@ -408,8 +408,10 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		fl->setSpacing(8);
 		helpButton_ = new QPushButton(this);
 		updateButton_ = new QPushButton(this);
+		quitButton_ = new QPushButton(this);
 		fl->addWidget(helpButton_);
 		fl->addWidget(updateButton_);
+		fl->addWidget(quitButton_);
 		fl->addStretch();
 		cancelButton_ = new QPushButton(this);
 		saveButton_ = new QPushButton(this);
@@ -420,6 +422,7 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 
 		connect(helpButton_,   &QPushButton::clicked, this, &SettingsDialog::onboardingRequested);
 		connect(updateButton_, &QPushButton::clicked, this, &SettingsDialog::updateCheckRequested);
+		connect(quitButton_,   &QPushButton::clicked, this, &SettingsDialog::quitRequested);
 		connect(saveButton_,   &QPushButton::clicked, this, &SettingsDialog::save);
 		connect(cancelButton_, &QPushButton::clicked, this, &SettingsDialog::hide);
 	}
@@ -602,6 +605,7 @@ void SettingsDialog::retranslateUi()
 	anchorLabel_->setText(text(TextId::AnchorPositionLabel, language_));
 	helpButton_->setText(text(TextId::SetupHelp, language_));
 	updateButton_->setText(text(TextId::Updates, language_));
+	quitButton_->setText(text(TextId::SettingsQuitApp, language_));
 	cancelButton_->setText(text(TextId::Cancel, language_));
 	saveButton_->setText(QString("  %1  ").arg(text(TextId::Save, language_)));
 

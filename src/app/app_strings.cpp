@@ -81,6 +81,9 @@ QString englishText(TextId id)
 	case TextId::TrayReconnectSpout: return "Reconnect Input";
 	case TextId::TrayCheckForUpdates: return "Check for Updates";
 	case TextId::TrayQuit: return "Quit";
+	case TextId::SettingsQuitApp: return "Close App";
+	case TextId::QuitConfirmTitle: return "Close Phantom Mirror";
+	case TextId::QuitConfirmText: return "Do you really want to fully close Phantom Mirror?";
 	case TextId::UpdateDialogTitle: return "Phantom Mirror Update";
 	case TextId::UpdateNoUpdates: return "No updates available.";
 	case TextId::UpdatePromptQuestion: return "Update %1 is available. Download and install now?";
@@ -172,6 +175,9 @@ QString germanText(TextId id)
 	case TextId::TrayReconnectSpout: return "Eingang neu verbinden";
 	case TextId::TrayCheckForUpdates: return "Nach Updates suchen";
 	case TextId::TrayQuit: return "Beenden";
+	case TextId::SettingsQuitApp: return "App beenden";
+	case TextId::QuitConfirmTitle: return "Phantom Mirror beenden";
+	case TextId::QuitConfirmText: return "Moechtest du Phantom Mirror wirklich vollstaendig beenden?";
 	case TextId::UpdateDialogTitle: return "Phantom Mirror Update";
 	case TextId::UpdateNoUpdates: return "Keine Updates verfügbar.";
 	case TextId::UpdatePromptQuestion: return "Update %1 ist verfügbar. Jetzt herunterladen und installieren?";

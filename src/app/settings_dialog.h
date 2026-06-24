@@ -40,6 +40,7 @@ signals:
 	void ndiSourcesRefreshRequested();
 	void ndiTestRequested();
 	void updateCheckRequested();
+	void quitRequested();
 
 private:
 	void setLanguage(AppLanguage language);
@@ -109,6 +110,7 @@ private:
 	QButtonGroup *anchorGroup_ = nullptr;
 	QPushButton *helpButton_ = nullptr;
 	QPushButton *updateButton_ = nullptr;
+	QPushButton *quitButton_ = nullptr;
 	QPushButton *cancelButton_ = nullptr;
 	QPushButton *saveButton_ = nullptr;
 	QLabel *updateStatus_ = nullptr;

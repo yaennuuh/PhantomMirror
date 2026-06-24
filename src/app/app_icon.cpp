@@ -11,8 +11,22 @@ QIcon loadIconCandidate(const QString &path)
 	return icon.isNull() ? QIcon() : icon;
 }
 
+QIcon makeBundledIcon()
+{
+	QIcon icon;
+	icon.addFile(":/icons/phantom_mirror.png");
+	icon.addFile(":/icons/icon.ico");
+	return icon;
+}
+
 QIcon resolveAppIcon()
 {
+	if (const QIcon icon = makeBundledIcon(); !icon.isNull())
+		return icon;
+
+	if (const QIcon icon = loadIconCandidate(":/icons/phantom_mirror.png"); !icon.isNull())
+		return icon;
+
 	if (const QIcon icon = loadIconCandidate(":/icons/icon.ico"); !icon.isNull())
 		return icon;
 
@@ -22,7 +36,11 @@ QIcon resolveAppIcon()
 	const QString appDir = QCoreApplication::applicationDirPath();
 	if (const QIcon icon = loadIconCandidate(QDir(appDir).filePath("Phantom Mirror.exe")); !icon.isNull())
 		return icon;
+	if (const QIcon icon = loadIconCandidate(QDir(appDir).filePath("phantom_mirror.png")); !icon.isNull())
+		return icon;
 	if (const QIcon icon = loadIconCandidate(QDir(appDir).filePath("icon.ico")); !icon.isNull())
+		return icon;
+	if (const QIcon icon = loadIconCandidate("resources/phantom_mirror.png"); !icon.isNull())
 		return icon;
 	if (const QIcon icon = loadIconCandidate("resources/icon.ico"); !icon.isNull())
 		return icon;
