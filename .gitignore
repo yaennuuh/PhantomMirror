@@ -1,0 +1,53 @@
+# -------------------------------
+# CMake / Qt
+# -------------------------------
+build/
+build-*/
+build-verify/
+out/
+dist/
+install/
+package/
+package-fresh/
+CMakeUserPresets.json
+**/*.pdb
+*.zip
+*.exe
+SHA256SUMS.txt
+
+# -------------------------------
+# Environment / local overrides
+# -------------------------------
+.env
+.env.*
+*.local
+
+# -------------------------------
+# IDE / Editor
+# -------------------------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+*.swo
+
+# -------------------------------
+# OS junk
+# -------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# -------------------------------
+# Temporary files
+# -------------------------------
+*.tmp
+*.temp
+*.bak
+
+# Local runtime config
+app-config.json

@@ -1,0 +1,38 @@
+{
+  "overlay": {
+    "input": "spout",
+    "monitor": "\\\\.\\DISPLAY1",
+    "includeInScreenCapture": false,
+    "alwaysOnTop": true,
+    "clickThrough": true,
+    "virtualViewport": {
+      "enabled": false,
+      "width": 1920,
+      "height": 1080,
+      "anchor": "middle-center"
+    },
+    "spoutReceiver": {
+      "enabled": false,
+      "senderName": "OBS Spout2 Output"
+    },
+    "ndiReceiver": {
+      "enabled": false,
+      "sourceName": "",
+      "preferExactName": true
+    },
+    "hotkey": {
+      "enabled": false,
+      "modifiers": [],
+      "key": ""
+    }
+  },
+  "debug": {
+    "enabled": false
+  },
+  "ui": {
+    "language": "system"
+  },
+  "onboarding": {
+    "completed": false
+  }
+}

@@ -1,0 +1,116 @@
+name: release-build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semantic version without leading v, for example 0.1.0"
+        required: true
+        type: string
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.3"
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+
+      - name: Resolve app version
+        id: app_version
+        shell: pwsh
+        run: |
+          $version = "${{ inputs.version }}"
+          if (-not $version) {
+            $version = "${{ github.ref_name }}"
+          }
+          if ($version.StartsWith("v")) {
+            $version = $version.Substring(1)
+          }
+          if (-not $version) {
+            throw "No release version was provided."
+          }
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "Version must match semantic versioning in the form X.Y.Z."
+          }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Resolve release tag
+        id: release_tag
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          if (-not $tag -or "${{ github.event_name }}" -eq "workflow_dispatch") {
+            $tag = "v${{ steps.app_version.outputs.version }}"
+          }
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Configure
+        shell: pwsh
+        run: >
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+          -DPHANTOM_MIRROR_APP_VERSION=${{ steps.app_version.outputs.version }}
+          -DPHANTOM_MIRROR_UPDATE_REPO=${{ github.repository }}
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Package
+        shell: pwsh
+        run: .\scripts\package-windows.ps1 -BuildDir build -Config Release -PackageDir package -ArchivePath Phantom-Mirror-windows-x64.zip
+
+      - name: Verify release artifacts
+        shell: pwsh
+        run: |
+          $required = @(
+            "Phantom-Mirror-windows-x64.zip",
+            "package\SHA256SUMS.txt"
+          )
+          foreach ($path in $required) {
+            if (-not (Test-Path $path)) {
+              throw "Required release artifact missing: $path"
+            }
+          }
+
+      - name: Prepare release notes
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.release_tag.outputs.tag }}"
+          @"
+          Official Phantom Mirror release $tag.
+
+          Notes:
+          - This build is published from the official repository release workflow.
+          - Windows builds may currently be unsigned and can trigger SmartScreen or Unknown Publisher warnings.
+          - Verify the published SHA256SUMS.txt file before running the release.
+          - Third-party builds, mirrors, and forks are not official Phantom Mirror releases.
+          "@ | Set-Content RELEASE_NOTES.txt -Encoding UTF8
+
+      - name: Create or update GitHub release
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.release_tag.outputs.tag }}"
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --target "${{ github.sha }}" --title "Phantom Mirror $tag" --notes-file RELEASE_NOTES.txt
+          } else {
+            gh release edit $tag --title "Phantom Mirror $tag" --notes-file RELEASE_NOTES.txt
+          }
+          gh release upload $tag Phantom-Mirror-windows-x64.zip package\SHA256SUMS.txt --clobber
