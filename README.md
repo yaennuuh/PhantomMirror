@@ -64,6 +64,7 @@ Allowed under the project license:
 
 Not allowed without separate written permission:
 
+- publicly redistribute or mirror the source code
 - publicly redistribute modified or unmodified builds
 - republish the project as your own release
 - commercially redistribute, resell, host, or rebrand it

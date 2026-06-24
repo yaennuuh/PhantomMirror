@@ -16,7 +16,8 @@ permissions:
 
 jobs:
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
+    environment: release
     steps:
       - uses: actions/checkout@v4
         with:
@@ -60,10 +61,19 @@ jobs:
 
       - name: Configure
         shell: pwsh
-        run: >
-          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
-          -DPHANTOM_MIRROR_APP_VERSION=${{ steps.app_version.outputs.version }}
-          -DPHANTOM_MIRROR_UPDATE_REPO=${{ github.repository }}
+        run: |
+          $cmakeArgs = @(
+            "-S", ".",
+            "-B", "build",
+            "-G", "Visual Studio 17 2022",
+            "-A", "x64",
+            "-DPHANTOM_MIRROR_APP_VERSION=${{ steps.app_version.outputs.version }}",
+            "-DPHANTOM_MIRROR_UPDATE_REPO=${{ github.repository }}"
+          )
+          & cmake @cmakeArgs
+          if ($LASTEXITCODE -ne 0) {
+            throw "CMake configure failed with exit code $LASTEXITCODE."
+          }
 
       - name: Build
         run: cmake --build build --config Release
