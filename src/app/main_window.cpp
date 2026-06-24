@@ -1,3 +1,4 @@
+#include "app_icon.h"
 #include "main_window.h"
 
 #include "app_strings.h"
@@ -359,7 +360,7 @@ void MainWindow::setupTray()
 
 	tray_.setContextMenu(trayMenu_);
 	tray_.setToolTip("Phantom Mirror");
-	tray_.setIcon(QApplication::windowIcon());
+	tray_.setIcon(appIcon());
 	connect(&tray_, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
 		if (reason == QSystemTrayIcon::Trigger)
 			openSettings();

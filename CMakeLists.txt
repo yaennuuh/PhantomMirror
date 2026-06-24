@@ -48,6 +48,8 @@ qt_add_executable(PhantomMirror WIN32
   src/app/arrow_combo_box.h
   src/app/app_config.cpp
   src/app/app_config.h
+  src/app/app_icon.cpp
+  src/app/app_icon.h
   src/app/app_strings.cpp
   src/app/app_strings.h
   src/app/hotkey_edit.cpp

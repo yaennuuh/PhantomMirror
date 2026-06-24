@@ -1,7 +1,7 @@
+#include "app_icon.h"
 #include "main_window.h"
 
 #include <QApplication>
-#include <QIcon>
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QStyleFactory>
@@ -12,12 +12,6 @@ namespace {
 
 constexpr auto kSingleInstanceMutexName = L"Local\\PhantomMirror.SingleInstance";
 constexpr auto kActivationServerName = "PhantomMirror.SingleInstance";
-
-QIcon makeAppIcon()
-{
-	const QIcon icon(":/icons/icon.ico");
-	return icon.isNull() ? QIcon("resources/icon.ico") : icon;
-}
 
 class SingleInstanceGuard {
 public:
@@ -277,7 +271,7 @@ int main(int argc, char *argv[])
 	QApplication app(argc, argv);
 	QApplication::setApplicationName("Phantom Mirror");
 	QApplication::setOrganizationName("Phantom Mirror");
-	app.setWindowIcon(makeAppIcon());
+	app.setWindowIcon(appIcon());
 	app.setQuitOnLastWindowClosed(false);
 	app.setStyle(QStyleFactory::create("Fusion"));
 	app.setStyleSheet(kDarkTheme);
