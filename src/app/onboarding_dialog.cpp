@@ -1,5 +1,6 @@
 #include "onboarding_dialog.h"
 
+#include "app_icon.h"
 #include "arrow_combo_box.h"
 #include "app_strings.h"
 #include "toggle_switch.h"
@@ -32,7 +33,7 @@ OnboardingDialog::OnboardingDialog(QWidget *parent)
 		auto *logo = new QLabel(hdr);
 		logo->setFixedSize(48, 48);
 		logo->setAlignment(Qt::AlignCenter);
-		logo->setPixmap(QApplication::windowIcon().pixmap(48, 48));
+		logo->setPixmap(appLogoPixmap(48));
 
 		auto *tv = new QVBoxLayout();
 		tv->setSpacing(3);

@@ -1,4 +1,5 @@
 #include "arrow_combo_box.h"
+#include "app_icon.h"
 #include "hotkey_edit.h"
 #include "settings_dialog.h"
 
@@ -101,7 +102,7 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		auto *logo = new QLabel(hdr);
 		logo->setFixedSize(48, 48);
 		logo->setAlignment(Qt::AlignCenter);
-		logo->setPixmap(QApplication::windowIcon().pixmap(48, 48));
+		logo->setPixmap(appLogoPixmap(48));
 
 		auto *tv = new QVBoxLayout();
 		tv->setSpacing(3);
