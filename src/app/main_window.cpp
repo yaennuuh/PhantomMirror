@@ -199,6 +199,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(&settings_, &SettingsDialog::updateCheckRequested, this, [this]() {
 		checkForUpdates(true);
 	});
+	connect(&settings_, &SettingsDialog::quitRequested, this, &MainWindow::requestQuitFromSettings);
 	connect(&onboarding_, &OnboardingDialog::completed, this, &MainWindow::markOnboardingCompleted);
 	connect(&onboarding_, &OnboardingDialog::languageChanged, this, [this](const QString &languageSetting) {
 		config_.ui.language = normalizeAppLanguageSetting(languageSetting);
@@ -427,6 +428,24 @@ void MainWindow::installUpdate(const QString &version, const QUrl &assetUrl)
 		return;
 	}
 	updater_.downloadAndInstall(version, assetUrl);
+}
+
+void MainWindow::requestQuitFromSettings()
+{
+	const QMessageBox::StandardButton answer = QMessageBox::question(
+		&settings_,
+		text(TextId::QuitConfirmTitle, language_),
+		text(TextId::QuitConfirmText, language_),
+		QMessageBox::Yes | QMessageBox::No,
+		QMessageBox::No);
+	if (answer != QMessageBox::Yes)
+		return;
+
+	quitting_ = true;
+	spout_.stop();
+	ndi_.stop();
+	tray_.hide();
+	qApp->quit();
 }
 
 void MainWindow::syncNdiAvailability()

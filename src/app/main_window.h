@@ -42,6 +42,7 @@ private:
 	void openOnboarding(bool firstRun);
 	void markOnboardingCompleted();
 	void checkForUpdates(bool interactive);
+	void requestQuitFromSettings();
 	void installUpdate(const QString &version, const QUrl &assetUrl);
 	void syncNdiAvailability();
 	NdiStatus unavailableNdiStatus() const;
