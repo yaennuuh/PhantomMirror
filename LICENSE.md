@@ -11,6 +11,12 @@ project materials created for this repository by the project maintainer,
 excluding third-party code, libraries, assets, and other materials that are
 explicitly identified as being subject to separate license terms.
 
+For clarity, public visibility of this repository does not grant permission to
+republish, redistribute, mirror, or publicly re-host the covered source code or
+release artifacts, except where such limited platform handling is strictly
+necessary to view the repository on GitHub or submit contributions to the
+maintainer through GitHub.
+
 ## 1. What you may do
 
 You may, at no charge:
@@ -26,8 +32,12 @@ You may, at no charge:
 You may not, without prior written permission from the maintainer:
 
 - publicly redistribute the source code, whether modified or unmodified
+- publish or maintain a public fork, mirror, archive, snapshot, or re-hosted
+  copy of the repository or covered source code
 - publish, distribute, share, mirror, or re-host builds or release artifacts,
   whether modified or unmodified
+- make the covered source code available to third parties as a downloadable
+  source package, repository export, or similar public distribution
 - sell the project, charge for access to it, or commercially exploit it
 - offer it as a hosted service, competing product, repackaged tool, or
   rebranded release
@@ -70,6 +80,10 @@ Only the project maintainer may publish official Phantom Mirror releases.
 A build made by a third party, including a fork or modified package, is not an
 official Phantom Mirror release unless the maintainer has explicitly authorized
 it in writing.
+
+No one other than the maintainer may publicly publish, distribute, mirror, or
+re-host Phantom Mirror release artifacts, whether modified or unmodified,
+without prior written permission.
 
 ## 6. Third-party components
 

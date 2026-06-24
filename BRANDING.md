@@ -18,6 +18,8 @@ These identity elements are not licensed for reuse under `LICENSE.md`.
 
 - Forks, private builds, and derivative projects may exist for local review and
   development.
+- Public redistribution of the source code or build artifacts is not permitted
+  under `LICENSE.md` without prior written permission from the maintainer.
 - They may not reuse the Phantom Mirror identity in a way that suggests they
   are official Phantom Mirror releases.
 - Anyone publishing their own version must use a different name, different
