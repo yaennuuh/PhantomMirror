@@ -65,6 +65,7 @@ QString englishText(TextId id)
 	case TextId::DebugSectionTitle: return "Debug";
 	case TextId::DebugEnabled: return "Enable debug logging";
 	case TextId::SetupHelp: return "Setup Help";
+	case TextId::SupportOnTwitch: return "Follow on Twitch";
 	case TextId::Updates: return "Updates";
 	case TextId::Cancel: return "Cancel";
 	case TextId::Save: return "Save";
@@ -159,6 +160,7 @@ QString germanText(TextId id)
 	case TextId::DebugSectionTitle: return "Debug";
 	case TextId::DebugEnabled: return "Debug-Logging aktivieren";
 	case TextId::SetupHelp: return "Setup-Hilfe";
+	case TextId::SupportOnTwitch: return "Auf Twitch folgen";
 	case TextId::Updates: return "Updates";
 	case TextId::Cancel: return "Abbrechen";
 	case TextId::Save: return "Speichern";
@@ -307,6 +309,19 @@ and align it with the anchor position.</p>
 <p>The <b>Overlay Hotkey</b> lets you quickly show or hide the overlay.
 <b>Include overlay in screen capture</b> controls whether the overlay appears in screen recordings.
 You can also check for updates directly from Settings at any time.</p>
+)html";
+}
+
+QString creatorSupportHtml(AppLanguage language)
+{
+	if (language == AppLanguage::German) {
+		return R"html(
+<span style="color:#6b6b94;">Phantom Mirror ist kostenlos und wird von itsBarrex zur Verfügung gestellt. Wenn dir das Tool gefällt, unterstütze das Projekt mit einem Follow auf Twitch. <a href="https://www.twitch.tv/itsbarrex" style="color:#a78bfa; text-decoration:none; font-weight:600;">Neue Features live auf Twitch ansehen</a></span>
+)html";
+	}
+
+	return R"html(
+<span style="color:#6b6b94;">Phantom Mirror is free and provided by itsBarrex. If you like the tool, support the project with a follow on Twitch. <a href="https://www.twitch.tv/itsbarrex" style="color:#a78bfa; text-decoration:none; font-weight:600;">Watch new features live on Twitch</a></span>
 )html";
 }
 

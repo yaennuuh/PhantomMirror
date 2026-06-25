@@ -26,6 +26,7 @@
 
 namespace {
 
+constexpr int kSectionTitleHeight = 16;
 QFrame *makeSep(QWidget *parent, const char *id = "cardSep")
 {
 	auto *sep = new QFrame(parent);
@@ -46,6 +47,7 @@ QLabel *makeSectionTitle(const QString &text, QWidget *parent)
 {
 	auto *l = new QLabel(text.toUpper(), parent);
 	l->setObjectName("sectionTitle");
+	l->setFixedHeight(kSectionTitleHeight);
 	return l;
 }
 
@@ -53,8 +55,7 @@ QLabel *makeFieldLabel(const QString &text, QWidget *parent)
 {
 	auto *l = new QLabel(text, parent);
 	l->setObjectName("mutedLabel");
-	l->setMinimumWidth(108);
-	l->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+	l->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 	return l;
 }
 
@@ -79,13 +80,18 @@ QUrl ndiToolsUrl()
 	return QUrl("https://ndi.video/tools/");
 }
 
+QUrl creatorTwitchUrl()
+{
+	return QUrl("https://www.twitch.tv/itsbarrex");
+}
+
 } // namespace
 
 SettingsDialog::SettingsDialog(QWidget *parent)
 	: QDialog(parent)
 {
-	resize(660, 700);
-	setMinimumWidth(580);
+	resize(1080, 820);
+	setMinimumWidth(940);
 
 	auto *root = new QVBoxLayout(this);
 	root->setContentsMargins(20, 20, 20, 18);
@@ -105,21 +111,30 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		logo->setPixmap(appLogoPixmap(48));
 
 		auto *tv = new QVBoxLayout();
-		tv->setSpacing(3);
-		tv->setContentsMargins(0, 2, 0, 2);
+		tv->setSpacing(0);
+		tv->setContentsMargins(0, 0, 0, 0);
 		headerTitle_ = new QLabel(hdr);
 		headerTitle_->setStyleSheet("font-size:17px;font-weight:700;color:#e8e8f8;");
 		headerSubtitle_ = new QLabel(hdr);
 		headerSubtitle_->setStyleSheet("font-size:12px;color:#44446a;");
 		versionLabel_ = new QLabel(hdr);
 		versionLabel_->setStyleSheet("font-size:12px;color:#6b6b94;");
+		updateStatus_ = new QLabel(hdr);
+		updateStatus_->setObjectName("mutedLabel");
+		updateStatus_->setWordWrap(true);
+		updateStatus_->setMinimumWidth(420);
+		updateStatus_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 		tv->addWidget(headerTitle_);
-		tv->addWidget(headerSubtitle_);
 		tv->addWidget(versionLabel_);
+		tv->addWidget(updateStatus_);
 
 		hl->addWidget(logo);
 		hl->addLayout(tv);
 		hl->addStretch();
+		updateButton_ = new QPushButton(hdr);
+		helpButton_ = new QPushButton(hdr);
+		hl->addWidget(updateButton_, 0, Qt::AlignRight | Qt::AlignVCenter);
+		hl->addWidget(helpButton_, 0, Qt::AlignRight | Qt::AlignVCenter);
 		languageSelector_ = new ArrowComboBox(hdr);
 		languageSelector_->setMinimumWidth(140);
 		hl->addWidget(languageSelector_, 0, Qt::AlignRight | Qt::AlignVCenter);
@@ -131,33 +146,49 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 	}
 	root->addWidget(makeSep(this, "dialogSep"));
 
+	auto *content = new QWidget(this);
+	auto *contentGrid = new QGridLayout(content);
+	contentGrid->setContentsMargins(0, 0, 0, 0);
+	contentGrid->setHorizontalSpacing(12);
+	contentGrid->setVerticalSpacing(12);
+	contentGrid->setColumnStretch(0, 3);
+	contentGrid->setColumnStretch(1, 2);
+	root->addWidget(content, 1);
+
 	// ── Input ─────────────────────────────────────────────────────────────
 	{
 		auto *card = makeCard(this);
 		auto *cl = new QVBoxLayout(card);
 		cl->setContentsMargins(18, 14, 18, 16);
 		cl->setSpacing(0);
+		cl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+		auto *headerRow = new QHBoxLayout();
+		headerRow->setContentsMargins(0, 0, 0, 0);
+		headerRow->setSpacing(8);
 		inputSectionTitle_ = makeSectionTitle(QString(), card);
-		cl->addWidget(inputSectionTitle_);
+		headerRow->addWidget(inputSectionTitle_);
+		headerRow->addStretch();
+		cl->addLayout(headerRow);
 		cl->addSpacing(10);
 		cl->addWidget(makeSep(card));
-		cl->addSpacing(14);
+		cl->addSpacing(12);
 
-		auto *row = new QHBoxLayout();
-		row->setSpacing(12);
+		auto *row = new QVBoxLayout();
+		row->setSpacing(8);
 		inputModeSelector_ = new ArrowComboBox(card);
 		inputModeLabel_ = makeFieldLabel(QString(), card);
 		row->addWidget(inputModeLabel_);
-		row->addWidget(inputModeSelector_, 1);
+		row->addWidget(inputModeSelector_);
 		cl->addLayout(row);
-		cl->addSpacing(14);
+		cl->addSpacing(12);
 		includeInScreenCapture_ = new ToggleSwitch(QString(), card);
 		cl->addWidget(includeInScreenCapture_);
 
 		connect(inputModeSelector_, &QComboBox::currentIndexChanged, this, [this]() {
 			syncSectionVisibility();
 		});
-		root->addWidget(card);
+		card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		contentGrid->addWidget(card, 0, 0);
 	}
 
 	// ── Hotkey ────────────────────────────────────────────────────────────
@@ -166,22 +197,31 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		auto *cl = new QVBoxLayout(card);
 		cl->setContentsMargins(18, 14, 18, 16);
 		cl->setSpacing(0);
+		cl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+		auto *headerRow = new QHBoxLayout();
+		headerRow->setContentsMargins(0, 0, 0, 0);
+		headerRow->setSpacing(8);
 		hotkeySectionTitle_ = makeSectionTitle(QString(), card);
-		cl->addWidget(hotkeySectionTitle_);
+		headerRow->addWidget(hotkeySectionTitle_);
+		headerRow->addStretch();
+		cl->addLayout(headerRow);
 		cl->addSpacing(10);
 		cl->addWidget(makeSep(card));
-		cl->addSpacing(14);
+		cl->addSpacing(12);
 
-		auto *row = new QHBoxLayout();
-		row->setSpacing(12);
+		auto *row = new QVBoxLayout();
+		row->setSpacing(8);
 		hotkeyEdit_ = new HotkeyEdit(card);
 		hotkeyLabel_ = makeFieldLabel(QString(), card);
 		clearHotkeyButton_ = new QPushButton(card);
 		row->addWidget(hotkeyLabel_);
-		row->addWidget(hotkeyEdit_, 1);
-		row->addWidget(clearHotkeyButton_);
+		auto *hotkeyControls = new QHBoxLayout();
+		hotkeyControls->setSpacing(12);
+		hotkeyControls->addWidget(hotkeyEdit_, 1);
+		hotkeyControls->addWidget(clearHotkeyButton_);
+		row->addLayout(hotkeyControls);
 		cl->addLayout(row);
-		cl->addSpacing(10);
+		cl->addSpacing(12);
 
 		hotkeyStatus_ = new QLabel(card);
 		hotkeyStatus_->setObjectName("statusLabel");
@@ -191,7 +231,8 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		connect(clearHotkeyButton_, &QPushButton::clicked, this, [this]() {
 			hotkeyEdit_->clearHotkey();
 		});
-		root->addWidget(card);
+		card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		contentGrid->addWidget(card, 0, 1);
 	}
 
 	// ── Spout2 Overlay ────────────────────────────────────────────────────
@@ -200,42 +241,50 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		auto *cl = new QVBoxLayout(card);
 		cl->setContentsMargins(18, 14, 18, 16);
 		cl->setSpacing(0);
+		cl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+		auto *headerRow = new QHBoxLayout();
+		headerRow->setContentsMargins(0, 0, 0, 0);
+		headerRow->setSpacing(8);
 		spoutSectionTitle_ = makeSectionTitle(QString(), card);
-		cl->addWidget(spoutSectionTitle_);
+		headerRow->addWidget(spoutSectionTitle_);
+		headerRow->addStretch();
+		spoutEnabled_ = new ToggleSwitch(QString(), card);
+		headerRow->addWidget(spoutEnabled_, 0, Qt::AlignRight | Qt::AlignTop);
+		cl->addLayout(headerRow);
 		cl->addSpacing(10);
 		cl->addWidget(makeSep(card));
-		cl->addSpacing(14);
-
-		spoutEnabled_ = new ToggleSwitch(QString(), card);
-		cl->addWidget(spoutEnabled_);
-		cl->addSpacing(14);
+		cl->addSpacing(12);
 
 		spoutContent_ = new QWidget(card);
 		auto *contentLayout = new QVBoxLayout(spoutContent_);
 		contentLayout->setContentsMargins(0, 0, 0, 0);
 		contentLayout->setSpacing(0);
+		contentLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-		auto *monitorRow = new QHBoxLayout();
-		monitorRow->setSpacing(12);
+		auto *monitorRow = new QVBoxLayout();
+		monitorRow->setSpacing(8);
 		monitorSelector_ = new ArrowComboBox(card);
 		monitorLabel_ = makeFieldLabel(QString(), card);
 		monitorRow->addWidget(monitorLabel_);
-		monitorRow->addWidget(monitorSelector_, 1);
+		monitorRow->addWidget(monitorSelector_);
 		contentLayout->addLayout(monitorRow);
-		contentLayout->addSpacing(8);
+		contentLayout->addSpacing(12);
 
-		auto *senderRow = new QHBoxLayout();
-		senderRow->setSpacing(12);
+		auto *senderRow = new QVBoxLayout();
+		senderRow->setSpacing(8);
 		senderSelector_ = new ArrowComboBox(card);
 		senderLabel_ = makeFieldLabel(QString(), card);
 		refreshSendersButton_ = new QPushButton(card);
 		senderRow->addWidget(senderLabel_);
-		senderRow->addWidget(senderSelector_, 1);
-		senderRow->addWidget(refreshSendersButton_);
+		auto *senderControls = new QHBoxLayout();
+		senderControls->setSpacing(12);
+		senderControls->addWidget(senderSelector_, 1);
+		senderControls->addWidget(refreshSendersButton_);
+		senderRow->addLayout(senderControls);
 		contentLayout->addLayout(senderRow);
 
 		// Test row
-		contentLayout->addSpacing(14);
+		contentLayout->addSpacing(12);
 		auto *r3 = new QHBoxLayout();
 		r3->setSpacing(12);
 		testButton_ = new QPushButton(card);
@@ -254,7 +303,8 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		connect(spoutEnabled_, &QAbstractButton::toggled, this, [this]() {
 			syncSectionVisibility();
 		});
-		root->addWidget(card);
+		card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		contentGrid->addWidget(card, 1, 0);
 	}
 
 	// ── NDI Receiver ──────────────────────────────────────────────────────
@@ -263,36 +313,45 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		auto *cl = new QVBoxLayout(card);
 		cl->setContentsMargins(18, 14, 18, 16);
 		cl->setSpacing(0);
+		cl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+		auto *headerRow = new QHBoxLayout();
+		headerRow->setContentsMargins(0, 0, 0, 0);
+		headerRow->setSpacing(8);
 		ndiSectionTitle_ = makeSectionTitle(QString(), card);
-		cl->addWidget(ndiSectionTitle_);
+		headerRow->addWidget(ndiSectionTitle_);
+		headerRow->addStretch();
+		ndiEnabled_ = new ToggleSwitch(QString(), card);
+		headerRow->addWidget(ndiEnabled_, 0, Qt::AlignRight | Qt::AlignTop);
+		cl->addLayout(headerRow);
 		cl->addSpacing(10);
 		cl->addWidget(makeSep(card));
-		cl->addSpacing(14);
-
-		ndiEnabled_ = new ToggleSwitch(QString(), card);
-		cl->addWidget(ndiEnabled_);
-		cl->addSpacing(14);
+		cl->addSpacing(12);
 
 		ndiContent_ = new QWidget(card);
 		auto *contentLayout = new QVBoxLayout(ndiContent_);
 		contentLayout->setContentsMargins(0, 0, 0, 0);
 		contentLayout->setSpacing(0);
+		contentLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
 		ndiControls_ = new QWidget(card);
 		auto *ndiControlsLayout = new QVBoxLayout(ndiControls_);
 		ndiControlsLayout->setContentsMargins(0, 0, 0, 0);
 		ndiControlsLayout->setSpacing(0);
+		ndiControlsLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-		auto *sourceRow = new QHBoxLayout();
-		sourceRow->setSpacing(12);
+		auto *sourceRow = new QVBoxLayout();
+		sourceRow->setSpacing(8);
 		ndiSourceSelector_ = new ArrowComboBox(card);
 		ndiSourceLabel_ = makeFieldLabel(QString(), card);
 		refreshNdiSourcesButton_ = new QPushButton(card);
 		sourceRow->addWidget(ndiSourceLabel_);
-		sourceRow->addWidget(ndiSourceSelector_, 1);
-		sourceRow->addWidget(refreshNdiSourcesButton_);
+		auto *sourceControls = new QHBoxLayout();
+		sourceControls->setSpacing(12);
+		sourceControls->addWidget(ndiSourceSelector_, 1);
+		sourceControls->addWidget(refreshNdiSourcesButton_);
+		sourceRow->addLayout(sourceControls);
 		ndiControlsLayout->addLayout(sourceRow);
-		ndiControlsLayout->addSpacing(14);
+		ndiControlsLayout->addSpacing(12);
 
 		auto *testRow = new QHBoxLayout();
 		testRow->setSpacing(12);
@@ -305,13 +364,13 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		testRow->addWidget(ndiStatus_, 1);
 		ndiControlsLayout->addLayout(testRow);
 		contentLayout->addWidget(ndiControls_);
-		contentLayout->addSpacing(10);
+		contentLayout->addSpacing(12);
 
 		ndiRuntimeHint_ = new QLabel(card);
 		ndiRuntimeHint_->setObjectName("statusLabel");
 		ndiRuntimeHint_->setWordWrap(true);
 		contentLayout->addWidget(ndiRuntimeHint_);
-		contentLayout->addSpacing(10);
+		contentLayout->addSpacing(12);
 
 		ndiInstallButton_ = new QPushButton(card);
 		ndiInstallButton_->setProperty("role", "primary");
@@ -326,7 +385,8 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		connect(ndiEnabled_, &QAbstractButton::toggled, this, [this]() {
 			syncSectionVisibility();
 		});
-		root->addWidget(card);
+		card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		contentGrid->addWidget(card, 1, 1);
 	}
 
 	// ── Virtueller Anzeigebereich ─────────────────────────────────────────
@@ -335,20 +395,25 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		auto *cl = new QVBoxLayout(card);
 		cl->setContentsMargins(18, 14, 18, 16);
 		cl->setSpacing(0);
+		cl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+		auto *headerRow = new QHBoxLayout();
+		headerRow->setContentsMargins(0, 0, 0, 0);
+		headerRow->setSpacing(8);
 		viewportSectionTitle_ = makeSectionTitle(QString(), card);
-		cl->addWidget(viewportSectionTitle_);
+		headerRow->addWidget(viewportSectionTitle_);
+		headerRow->addStretch();
+		viewportEnabled_ = new ToggleSwitch(QString(), card);
+		headerRow->addWidget(viewportEnabled_, 0, Qt::AlignRight | Qt::AlignTop);
+		cl->addLayout(headerRow);
 		cl->addSpacing(10);
 		cl->addWidget(makeSep(card));
-		cl->addSpacing(14);
-
-		viewportEnabled_ = new ToggleSwitch(QString(), card);
-		cl->addWidget(viewportEnabled_);
-		cl->addSpacing(14);
+		cl->addSpacing(12);
 
 		viewportContent_ = new QWidget(card);
 		auto *viewportLayout = new QVBoxLayout(viewportContent_);
 		viewportLayout->setContentsMargins(0, 0, 0, 0);
 		viewportLayout->setSpacing(0);
+		viewportLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
 		// Size row
 		auto *sizeRow = new QHBoxLayout();
@@ -376,13 +441,13 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		sizeRow->addWidget(viewportHeightUnit_);
 		sizeRow->addStretch();
 		viewportLayout->addLayout(sizeRow);
-		viewportLayout->addSpacing(14);
+		viewportLayout->addSpacing(12);
 
 		// Anchor
 		anchorLabel_ = new QLabel(card);
 		anchorLabel_->setObjectName("mutedLabel");
 		viewportLayout->addWidget(anchorLabel_);
-		viewportLayout->addSpacing(8);
+		viewportLayout->addSpacing(12);
 
 		auto *anchorWrap = new QWidget(card);
 		auto *ag = new QGridLayout(anchorWrap);
@@ -396,27 +461,20 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 			syncSectionVisibility();
 		});
 
-		root->addWidget(card);
+		card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		contentGrid->addWidget(card, 2, 0, 1, 2);
 	}
-
-	root->addStretch();
 	root->addWidget(makeSep(this, "dialogSep"));
 
 	// ── Footer ────────────────────────────────────────────────────────────
 	{
 		auto *fl = new QHBoxLayout();
 		fl->setSpacing(8);
-		helpButton_ = new QPushButton(this);
-		updateButton_ = new QPushButton(this);
 		quitButton_ = new QPushButton(this);
-		fl->addWidget(helpButton_);
-		fl->addWidget(updateButton_);
 		fl->addWidget(quitButton_);
 		fl->addStretch();
-		cancelButton_ = new QPushButton(this);
 		saveButton_ = new QPushButton(this);
 		saveButton_->setProperty("role", "primary");
-		fl->addWidget(cancelButton_);
 		fl->addWidget(saveButton_);
 		root->addLayout(fl);
 
@@ -424,13 +482,15 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		connect(updateButton_, &QPushButton::clicked, this, &SettingsDialog::updateCheckRequested);
 		connect(quitButton_,   &QPushButton::clicked, this, &SettingsDialog::quitRequested);
 		connect(saveButton_,   &QPushButton::clicked, this, &SettingsDialog::save);
-		connect(cancelButton_, &QPushButton::clicked, this, &SettingsDialog::hide);
 	}
 
-	updateStatus_ = new QLabel(this);
-	updateStatus_->setObjectName("mutedLabel");
-	updateStatus_->setWordWrap(true);
-	root->addWidget(updateStatus_);
+	creatorSupport_ = new QLabel(this);
+	creatorSupport_->setObjectName("statusLabel");
+	creatorSupport_->setTextFormat(Qt::RichText);
+	creatorSupport_->setTextInteractionFlags(Qt::TextBrowserInteraction);
+	creatorSupport_->setOpenExternalLinks(true);
+	creatorSupport_->setWordWrap(true);
+	root->addWidget(creatorSupport_);
 
 	retranslateUi();
 	syncSectionVisibility();
@@ -559,7 +619,7 @@ void SettingsDialog::retranslateUi()
 	const QString currentNdiSource = ndiSourceSelector_->currentData().toString().trimmed();
 	setWindowTitle(text(TextId::SettingsWindowTitle, language_));
 	headerTitle_->setText(text(TextId::SettingsHeaderTitle, language_));
-	headerSubtitle_->setText(text(TextId::SettingsHeaderSubtitle, language_));
+	headerSubtitle_->clear();
 	versionLabel_->setText(text(TextId::SettingsVersionLabel, language_).arg(QStringLiteral(PHANTOM_MIRROR_VERSION)));
 	syncingLanguageSelector_ = true;
 	languageSelector_->clear();
@@ -585,19 +645,19 @@ void SettingsDialog::retranslateUi()
 	hotkeyEdit_->setPlaceholderText(text(TextId::HotkeyPlaceholder, language_));
 	clearHotkeyButton_->setText(text(TextId::HotkeyClear, language_));
 	spoutSectionTitle_->setText(text(TextId::SpoutSectionTitle, language_).toUpper());
-	spoutEnabled_->setText(text(TextId::SpoutEnabled, language_));
+	spoutEnabled_->setText(QString());
 	monitorLabel_->setText(text(TextId::MonitorLabel, language_));
 	senderLabel_->setText(text(TextId::SenderLabel, language_));
 	refreshSendersButton_->setText(text(TextId::SenderRefresh, language_));
 	testButton_->setText(text(TextId::TestConnection, language_));
 	ndiSectionTitle_->setText(text(TextId::NdiSectionTitle, language_).toUpper());
-	ndiEnabled_->setText(text(TextId::NdiEnabled, language_));
+	ndiEnabled_->setText(QString());
 	ndiSourceLabel_->setText(text(TextId::NdiSourceLabel, language_));
 	refreshNdiSourcesButton_->setText(text(TextId::SenderRefresh, language_));
 	ndiTestButton_->setText(text(TextId::TestConnection, language_));
 	ndiInstallButton_->setText(text(TextId::NdiInstallAction, language_));
 	viewportSectionTitle_->setText(text(TextId::ViewportSectionTitle, language_).toUpper());
-	viewportEnabled_->setText(text(TextId::ViewportEnabled, language_));
+	viewportEnabled_->setText(QString());
 	viewportWidthLabel_->setText(text(TextId::WidthLabel, language_));
 	viewportHeightLabel_->setText(text(TextId::HeightLabel, language_));
 	viewportWidthUnit_->setText(text(TextId::PixelsSuffix, language_));
@@ -606,7 +666,6 @@ void SettingsDialog::retranslateUi()
 	helpButton_->setText(text(TextId::SetupHelp, language_));
 	updateButton_->setText(text(TextId::Updates, language_));
 	quitButton_->setText(text(TextId::SettingsQuitApp, language_));
-	cancelButton_->setText(text(TextId::Cancel, language_));
 	saveButton_->setText(QString("  %1  ").arg(text(TextId::Save, language_)));
 
 	const QString selectedMonitor = monitorSelector_->currentData().toString();
@@ -639,6 +698,7 @@ void SettingsDialog::retranslateUi()
 	if (hotkeyStatus_->text().isEmpty())
 		hotkeyStatus_->setText(QString("<span style='color:#40406a'>%1</span>")
 			.arg(text(TextId::HotkeyUnset, language_).toHtmlEscaped()));
+	creatorSupport_->setText(creatorSupportHtml(language_));
 	updateStatus_->setText(updateStatusText_);
 }
 

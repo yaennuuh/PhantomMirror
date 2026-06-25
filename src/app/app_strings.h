@@ -66,6 +66,7 @@ enum class TextId {
 	DebugSectionTitle,
 	DebugEnabled,
 	SetupHelp,
+	SupportOnTwitch,
 	Updates,
 	Cancel,
 	Save,
@@ -105,6 +106,7 @@ QString normalizeAppLanguage(const QString &setting);
 QString text(TextId id, AppLanguage language);
 QString monitorLabel(QScreen *screen, int index, AppLanguage language);
 QString onboardingHtml(AppLanguage language);
+QString creatorSupportHtml(AppLanguage language);
 QString formatUpdatePrompt(AppLanguage language, const QString &version);
 QString formatUpdateAvailableStatus(AppLanguage language, const QString &version);
 QString formatOnboardingSaveError(AppLanguage language, const QString &error);
