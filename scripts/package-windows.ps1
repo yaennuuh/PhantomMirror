@@ -59,6 +59,8 @@ if (-not $ChecksumPath) {
 Remove-Item -Recurse -Force $PackageDir -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $PackageDir | Out-Null
 Copy-Item $exePath $PackageDir
+Copy-Item (Join-Path "resources" "phantom_mirror.png") $PackageDir -Force
+Copy-Item (Join-Path "resources" "icon.ico") $PackageDir -Force
 
 $buildOutputDir = Split-Path $exePath -Parent
 if ($IncludeNdiRuntime) {
