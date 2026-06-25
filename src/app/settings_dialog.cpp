@@ -111,21 +111,30 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		logo->setPixmap(appLogoPixmap(48));
 
 		auto *tv = new QVBoxLayout();
-		tv->setSpacing(3);
-		tv->setContentsMargins(0, 2, 0, 2);
+		tv->setSpacing(0);
+		tv->setContentsMargins(0, 0, 0, 0);
 		headerTitle_ = new QLabel(hdr);
 		headerTitle_->setStyleSheet("font-size:17px;font-weight:700;color:#e8e8f8;");
 		headerSubtitle_ = new QLabel(hdr);
 		headerSubtitle_->setStyleSheet("font-size:12px;color:#44446a;");
 		versionLabel_ = new QLabel(hdr);
 		versionLabel_->setStyleSheet("font-size:12px;color:#6b6b94;");
+		updateStatus_ = new QLabel(hdr);
+		updateStatus_->setObjectName("mutedLabel");
+		updateStatus_->setWordWrap(true);
+		updateStatus_->setMinimumWidth(420);
+		updateStatus_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 		tv->addWidget(headerTitle_);
-		tv->addWidget(headerSubtitle_);
 		tv->addWidget(versionLabel_);
+		tv->addWidget(updateStatus_);
 
 		hl->addWidget(logo);
 		hl->addLayout(tv);
 		hl->addStretch();
+		updateButton_ = new QPushButton(hdr);
+		helpButton_ = new QPushButton(hdr);
+		hl->addWidget(updateButton_, 0, Qt::AlignRight | Qt::AlignVCenter);
+		hl->addWidget(helpButton_, 0, Qt::AlignRight | Qt::AlignVCenter);
 		languageSelector_ = new ArrowComboBox(hdr);
 		languageSelector_->setMinimumWidth(140);
 		hl->addWidget(languageSelector_, 0, Qt::AlignRight | Qt::AlignVCenter);
@@ -461,32 +470,18 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 	{
 		auto *fl = new QHBoxLayout();
 		fl->setSpacing(8);
-		helpButton_ = new QPushButton(this);
-		updateButton_ = new QPushButton(this);
 		quitButton_ = new QPushButton(this);
-		creatorSupportButton_ = new QPushButton(this);
-		creatorSupportButton_->setProperty("role", "primary");
-		creatorSupportButton_->setMinimumWidth(160);
-		fl->addWidget(helpButton_);
-		fl->addWidget(updateButton_);
 		fl->addWidget(quitButton_);
-		fl->addWidget(creatorSupportButton_);
 		fl->addStretch();
-		cancelButton_ = new QPushButton(this);
 		saveButton_ = new QPushButton(this);
 		saveButton_->setProperty("role", "primary");
-		fl->addWidget(cancelButton_);
 		fl->addWidget(saveButton_);
 		root->addLayout(fl);
 
 		connect(helpButton_,   &QPushButton::clicked, this, &SettingsDialog::onboardingRequested);
 		connect(updateButton_, &QPushButton::clicked, this, &SettingsDialog::updateCheckRequested);
 		connect(quitButton_,   &QPushButton::clicked, this, &SettingsDialog::quitRequested);
-		connect(creatorSupportButton_, &QPushButton::clicked, this, []() {
-			QDesktopServices::openUrl(creatorTwitchUrl());
-		});
 		connect(saveButton_,   &QPushButton::clicked, this, &SettingsDialog::save);
-		connect(cancelButton_, &QPushButton::clicked, this, &SettingsDialog::hide);
 	}
 
 	creatorSupport_ = new QLabel(this);
@@ -496,11 +491,6 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 	creatorSupport_->setOpenExternalLinks(true);
 	creatorSupport_->setWordWrap(true);
 	root->addWidget(creatorSupport_);
-
-	updateStatus_ = new QLabel(this);
-	updateStatus_->setObjectName("mutedLabel");
-	updateStatus_->setWordWrap(true);
-	root->addWidget(updateStatus_);
 
 	retranslateUi();
 	syncSectionVisibility();
@@ -629,7 +619,7 @@ void SettingsDialog::retranslateUi()
 	const QString currentNdiSource = ndiSourceSelector_->currentData().toString().trimmed();
 	setWindowTitle(text(TextId::SettingsWindowTitle, language_));
 	headerTitle_->setText(text(TextId::SettingsHeaderTitle, language_));
-	headerSubtitle_->setText(text(TextId::SettingsHeaderSubtitle, language_));
+	headerSubtitle_->clear();
 	versionLabel_->setText(text(TextId::SettingsVersionLabel, language_).arg(QStringLiteral(PHANTOM_MIRROR_VERSION)));
 	syncingLanguageSelector_ = true;
 	languageSelector_->clear();
@@ -676,7 +666,6 @@ void SettingsDialog::retranslateUi()
 	helpButton_->setText(text(TextId::SetupHelp, language_));
 	updateButton_->setText(text(TextId::Updates, language_));
 	quitButton_->setText(text(TextId::SettingsQuitApp, language_));
-	cancelButton_->setText(text(TextId::Cancel, language_));
 	saveButton_->setText(QString("  %1  ").arg(text(TextId::Save, language_)));
 
 	const QString selectedMonitor = monitorSelector_->currentData().toString();
@@ -710,7 +699,6 @@ void SettingsDialog::retranslateUi()
 		hotkeyStatus_->setText(QString("<span style='color:#40406a'>%1</span>")
 			.arg(text(TextId::HotkeyUnset, language_).toHtmlEscaped()));
 	creatorSupport_->setText(creatorSupportHtml(language_));
-	creatorSupportButton_->setText(text(TextId::SupportOnTwitch, language_));
 	updateStatus_->setText(updateStatusText_);
 }
 

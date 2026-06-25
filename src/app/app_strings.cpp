@@ -321,7 +321,7 @@ QString creatorSupportHtml(AppLanguage language)
 	}
 
 	return R"html(
-<span style="color:#6b6b94;">Phantom Mirror is provided for free by <b style="color:#c8d4f0;">itsBarrex</b>. The best way to support it is a <a href="https://www.twitch.tv/itsbarrex" style="color:#a78bfa; text-decoration:none; font-weight:600;">follow on Twitch</a>. New features, tests, and setups are built live there.</span>
+<span style="color:#6b6b94;">Phantom Mirror is free and provided by itsBarrex. If you like the tool, support the project with a follow on Twitch. <a href="https://www.twitch.tv/itsbarrex" style="color:#a78bfa; text-decoration:none; font-weight:600;">Watch new features live on Twitch</a></span>
 )html";
 }
 

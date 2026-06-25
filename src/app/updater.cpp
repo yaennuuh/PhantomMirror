@@ -242,43 +242,43 @@ QString Updater::currentStatusText() const
 	case StatusKind::DownloadProgress:
 		return language_ == AppLanguage::German
 			? QString("Download läuft... %1%").arg(statusValue_)
-			: QString("Download in progress... %1%").arg(statusValue_);
+			: QString("Downloading... %1%").arg(statusValue_);
 	case StatusKind::Failed:
 		if (statusFirst_ == "update_repo_missing")
 			return language_ == AppLanguage::German
 				? "Updates sind fuer diesen Build nicht konfiguriert."
-				: "Updates are not configured for this build.";
+				: "Update checks are not configured for this build.";
 		if (statusFirst_ == "update_check")
 			return language_ == AppLanguage::German
 				? QString("Update-Prüfung fehlgeschlagen: %1").arg(statusSecond_)
-				: QString("Update check failed: %1").arg(statusSecond_);
+				: QString("Could not check for updates: %1").arg(statusSecond_);
 		if (statusFirst_ == "release_no_version")
 			return language_ == AppLanguage::German
 				? "GitHub Release enthält keine Version."
-				: "GitHub release does not contain a version.";
+				: "The GitHub release does not contain a version.";
 		if (statusFirst_ == "missing_asset")
 			return language_ == AppLanguage::German
 				? QString("Release %1 enthält kein Asset %2.").arg(statusSecond_, statusThird_)
-				: QString("Release %1 does not contain asset %2.").arg(statusSecond_, statusThird_);
+				: QString("Release %1 does not contain the asset %2.").arg(statusSecond_, statusThird_);
 		if (statusFirst_ == "download_failed")
 			return language_ == AppLanguage::German
 				? QString("Update-Download fehlgeschlagen: %1").arg(statusSecond_)
-				: QString("Update download failed: %1").arg(statusSecond_);
+				: QString("Could not download the update: %1").arg(statusSecond_);
 		if (statusFirst_ == "write_zip")
 			return language_ == AppLanguage::German
 				? QString("Update-Datei kann nicht geschrieben werden: %1").arg(statusSecond_)
-				: QString("Could not write update file: %1").arg(statusSecond_);
+				: QString("Could not write the update file: %1").arg(statusSecond_);
 		if (statusFirst_ == "write_script")
 			return language_ == AppLanguage::German
 				? QString("Updater-Skript kann nicht geschrieben werden: %1").arg(statusSecond_)
-				: QString("Could not write updater script: %1").arg(statusSecond_);
+				: QString("Could not write the updater script: %1").arg(statusSecond_);
 		return statusSecond_;
 	case StatusKind::NoUpdates:
 		return language_ == AppLanguage::German ? "Keine Updates verfügbar." : "No updates available.";
 	case StatusKind::UpdateFound:
 		return language_ == AppLanguage::German
 			? QString("Update gefunden: %1").arg(statusFirst_)
-			: QString("Update found: %1").arg(statusFirst_);
+			: QString("Update available: %1").arg(statusFirst_);
 	case StatusKind::Installing:
 		return language_ == AppLanguage::German
 			? "Update wird installiert. Phantom Mirror startet danach neu..."
