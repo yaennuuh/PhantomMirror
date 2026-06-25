@@ -108,10 +108,12 @@ private:
 	QLabel *viewportHeightUnit_ = nullptr;
 	QLabel *anchorLabel_ = nullptr;
 	QButtonGroup *anchorGroup_ = nullptr;
+	QPushButton *creatorSupportButton_ = nullptr;
 	QPushButton *helpButton_ = nullptr;
 	QPushButton *updateButton_ = nullptr;
 	QPushButton *quitButton_ = nullptr;
 	QPushButton *cancelButton_ = nullptr;
 	QPushButton *saveButton_ = nullptr;
+	QLabel *creatorSupport_ = nullptr;
 	QLabel *updateStatus_ = nullptr;
 };

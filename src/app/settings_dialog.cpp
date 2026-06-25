@@ -79,13 +79,18 @@ QUrl ndiToolsUrl()
 	return QUrl("https://ndi.video/tools/");
 }
 
+QUrl creatorTwitchUrl()
+{
+	return QUrl("https://www.twitch.tv/itsbarrex");
+}
+
 } // namespace
 
 SettingsDialog::SettingsDialog(QWidget *parent)
 	: QDialog(parent)
 {
-	resize(660, 700);
-	setMinimumWidth(580);
+	resize(1080, 820);
+	setMinimumWidth(940);
 
 	auto *root = new QVBoxLayout(this);
 	root->setContentsMargins(20, 20, 20, 18);
@@ -131,6 +136,15 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 	}
 	root->addWidget(makeSep(this, "dialogSep"));
 
+	auto *content = new QWidget(this);
+	auto *contentGrid = new QGridLayout(content);
+	contentGrid->setContentsMargins(0, 0, 0, 0);
+	contentGrid->setHorizontalSpacing(12);
+	contentGrid->setVerticalSpacing(12);
+	contentGrid->setColumnStretch(0, 3);
+	contentGrid->setColumnStretch(1, 2);
+	root->addWidget(content, 1);
+
 	// ── Input ─────────────────────────────────────────────────────────────
 	{
 		auto *card = makeCard(this);
@@ -157,7 +171,8 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		connect(inputModeSelector_, &QComboBox::currentIndexChanged, this, [this]() {
 			syncSectionVisibility();
 		});
-		root->addWidget(card);
+		card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+		contentGrid->addWidget(card, 0, 0);
 	}
 
 	// ── Hotkey ────────────────────────────────────────────────────────────
@@ -191,7 +206,8 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		connect(clearHotkeyButton_, &QPushButton::clicked, this, [this]() {
 			hotkeyEdit_->clearHotkey();
 		});
-		root->addWidget(card);
+		card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+		contentGrid->addWidget(card, 0, 1);
 	}
 
 	// ── Spout2 Overlay ────────────────────────────────────────────────────
@@ -254,7 +270,8 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		connect(spoutEnabled_, &QAbstractButton::toggled, this, [this]() {
 			syncSectionVisibility();
 		});
-		root->addWidget(card);
+		card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+		contentGrid->addWidget(card, 1, 0);
 	}
 
 	// ── NDI Receiver ──────────────────────────────────────────────────────
@@ -326,7 +343,8 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		connect(ndiEnabled_, &QAbstractButton::toggled, this, [this]() {
 			syncSectionVisibility();
 		});
-		root->addWidget(card);
+		card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+		contentGrid->addWidget(card, 1, 1);
 	}
 
 	// ── Virtueller Anzeigebereich ─────────────────────────────────────────
@@ -396,10 +414,9 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 			syncSectionVisibility();
 		});
 
-		root->addWidget(card);
+		card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+		contentGrid->addWidget(card, 2, 0, 1, 2);
 	}
-
-	root->addStretch();
 	root->addWidget(makeSep(this, "dialogSep"));
 
 	// ── Footer ────────────────────────────────────────────────────────────
@@ -409,9 +426,13 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		helpButton_ = new QPushButton(this);
 		updateButton_ = new QPushButton(this);
 		quitButton_ = new QPushButton(this);
+		creatorSupportButton_ = new QPushButton(this);
+		creatorSupportButton_->setProperty("role", "primary");
+		creatorSupportButton_->setMinimumWidth(160);
 		fl->addWidget(helpButton_);
 		fl->addWidget(updateButton_);
 		fl->addWidget(quitButton_);
+		fl->addWidget(creatorSupportButton_);
 		fl->addStretch();
 		cancelButton_ = new QPushButton(this);
 		saveButton_ = new QPushButton(this);
@@ -423,9 +444,20 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		connect(helpButton_,   &QPushButton::clicked, this, &SettingsDialog::onboardingRequested);
 		connect(updateButton_, &QPushButton::clicked, this, &SettingsDialog::updateCheckRequested);
 		connect(quitButton_,   &QPushButton::clicked, this, &SettingsDialog::quitRequested);
+		connect(creatorSupportButton_, &QPushButton::clicked, this, []() {
+			QDesktopServices::openUrl(creatorTwitchUrl());
+		});
 		connect(saveButton_,   &QPushButton::clicked, this, &SettingsDialog::save);
 		connect(cancelButton_, &QPushButton::clicked, this, &SettingsDialog::hide);
 	}
+
+	creatorSupport_ = new QLabel(this);
+	creatorSupport_->setObjectName("statusLabel");
+	creatorSupport_->setTextFormat(Qt::RichText);
+	creatorSupport_->setTextInteractionFlags(Qt::TextBrowserInteraction);
+	creatorSupport_->setOpenExternalLinks(true);
+	creatorSupport_->setWordWrap(true);
+	root->addWidget(creatorSupport_);
 
 	updateStatus_ = new QLabel(this);
 	updateStatus_->setObjectName("mutedLabel");
@@ -639,6 +671,8 @@ void SettingsDialog::retranslateUi()
 	if (hotkeyStatus_->text().isEmpty())
 		hotkeyStatus_->setText(QString("<span style='color:#40406a'>%1</span>")
 			.arg(text(TextId::HotkeyUnset, language_).toHtmlEscaped()));
+	creatorSupport_->setText(creatorSupportHtml(language_));
+	creatorSupportButton_->setText(text(TextId::SupportOnTwitch, language_));
 	updateStatus_->setText(updateStatusText_);
 }
 
