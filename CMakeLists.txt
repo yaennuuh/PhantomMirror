@@ -63,6 +63,10 @@ qt_add_executable(PhantomMirror WIN32
   src/app/onboarding_dialog.h
   src/app/settings_dialog.cpp
   src/app/settings_dialog.h
+  src/app/theme.cpp
+  src/app/theme.h
+  src/app/theme_toggle.cpp
+  src/app/theme_toggle.h
   src/app/toggle_switch.cpp
   src/app/toggle_switch.h
   src/app/spout_controller.cpp

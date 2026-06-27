@@ -30,7 +30,8 @@
     "enabled": false
   },
   "ui": {
-    "language": "system"
+    "language": "system",
+    "theme": "system"
   },
   "onboarding": {
     "completed": false

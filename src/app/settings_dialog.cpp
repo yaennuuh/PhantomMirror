@@ -7,7 +7,6 @@
 
 #include <QApplication>
 #include <QButtonGroup>
-#include <QComboBox>
 #include <QDesktopServices>
 #include <QFrame>
 #include <QGuiApplication>
@@ -80,11 +79,6 @@ QUrl ndiToolsUrl()
 	return QUrl("https://ndi.video/tools/");
 }
 
-QUrl creatorTwitchUrl()
-{
-	return QUrl("https://www.twitch.tv/itsbarrex");
-}
-
 } // namespace
 
 SettingsDialog::SettingsDialog(QWidget *parent)
@@ -114,11 +108,11 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		tv->setSpacing(0);
 		tv->setContentsMargins(0, 0, 0, 0);
 		headerTitle_ = new QLabel(hdr);
-		headerTitle_->setStyleSheet("font-size:17px;font-weight:700;color:#e8e8f8;");
+		headerTitle_->setObjectName("headerTitle");
 		headerSubtitle_ = new QLabel(hdr);
-		headerSubtitle_->setStyleSheet("font-size:12px;color:#44446a;");
+		headerSubtitle_->setObjectName("headerSubtitle");
 		versionLabel_ = new QLabel(hdr);
-		versionLabel_->setStyleSheet("font-size:12px;color:#6b6b94;");
+		versionLabel_->setObjectName("versionLabel");
 		updateStatus_ = new QLabel(hdr);
 		updateStatus_->setObjectName("mutedLabel");
 		updateStatus_->setWordWrap(true);
@@ -135,9 +129,14 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 		helpButton_ = new QPushButton(hdr);
 		hl->addWidget(updateButton_, 0, Qt::AlignRight | Qt::AlignVCenter);
 		hl->addWidget(helpButton_, 0, Qt::AlignRight | Qt::AlignVCenter);
+		themeToggle_ = new ThemeToggle(hdr);
+		hl->addWidget(themeToggle_, 0, Qt::AlignRight | Qt::AlignVCenter);
 		languageSelector_ = new ArrowComboBox(hdr);
 		languageSelector_->setMinimumWidth(140);
 		hl->addWidget(languageSelector_, 0, Qt::AlignRight | Qt::AlignVCenter);
+		connect(themeToggle_, &QAbstractButton::toggled, this, [this](bool checked) {
+			emit themeChanged(checked ? QString("light") : QString("dark"));
+		});
 		connect(languageSelector_, &QComboBox::currentIndexChanged, this, [this]() {
 			if (!syncingLanguageSelector_)
 				emit languageChanged(languageSelector_->currentData().toString());
@@ -511,6 +510,12 @@ void SettingsDialog::setConfig(const AppConfig &config)
 	syncingLanguageSelector_ = true;
 	languageSelector_->setCurrentIndex(qMax(0, languageSelector_->findData(config.ui.language)));
 	syncingLanguageSelector_ = false;
+	{
+		const QSignalBlocker blocker(themeToggle_);
+		const bool light = normalizeAppThemeSetting(config.ui.theme) == "light";
+		themeToggle_->setChecked(light);
+		themeToggle_->setKnobPos(light ? 1.0 : 0.0);
+	}
 	populateMonitorOptions(config.overlay.monitor);
 	repopulateSenderOptions(config.overlay.spoutReceiver.senderName);
 	repopulateNdiSourceOptions(config.overlay.ndiReceiver.sourceName);
@@ -537,6 +542,7 @@ AppConfig SettingsDialog::config() const
 {
 	AppConfig config;
 	config.ui.language = normalizeAppLanguageSetting(languageSelector_->currentData().toString());
+	config.ui.theme = appThemeSetting(selectedTheme());
 	config.overlay.input = overlayInputModeFromString(inputModeSelector_->currentData().toString());
 	if (!ndiRuntimeAvailable_ && config.overlay.input == OverlayInputMode::Ndi)
 		config.overlay.input = OverlayInputMode::Spout;
@@ -628,6 +634,9 @@ void SettingsDialog::retranslateUi()
 	languageSelector_->addItem(text(TextId::LanguageOptionEnglish, language_), "en");
 	languageSelector_->setCurrentIndex(qMax(0, languageSelector_->findData(currentLanguage.isEmpty() ? "system" : currentLanguage)));
 	syncingLanguageSelector_ = false;
+	themeToggle_->setToolTip(QString("%1 / %2")
+		.arg(text(TextId::ThemeOptionDark, language_),
+		     text(TextId::ThemeOptionLight, language_)));
 	const QString currentInputMode = inputModeSelector_->currentData().toString();
 	inputSectionTitle_->setText(text(TextId::InputSectionTitle, language_).toUpper());
 	inputModeLabel_->setText(text(TextId::InputModeLabel, language_));
@@ -676,30 +685,46 @@ void SettingsDialog::retranslateUi()
 		setSpoutStatus(lastSpoutStatus_);
 	else
 		spoutStatus_->setText(QString(
-			"<span style='color:#2e2e50'>&#9679;</span>"
-			"<span style='color:#40406a'>  %1</span>").arg(text(TextId::SpoutNotTested, language_).toHtmlEscaped()));
+			"<span style='color:%1'>&#9679;</span>"
+			"<span style='color:%2'>  %3</span>")
+			.arg(statusColorToken(selectedTheme(), "idleDot"),
+			     statusColorToken(selectedTheme(), "idleText"),
+			     text(TextId::SpoutNotTested, language_).toHtmlEscaped()));
 	if (hasNdiStatus_)
 		setNdiStatus(lastNdiStatus_);
 	else
 		ndiStatus_->setText(QString(
-			"<span style='color:#2e2e50'>&#9679;</span>"
-			"<span style='color:#40406a'>  %1</span>").arg(text(TextId::NdiNotTested, language_).toHtmlEscaped()));
+			"<span style='color:%1'>&#9679;</span>"
+			"<span style='color:%2'>  %3</span>")
+			.arg(statusColorToken(selectedTheme(), "idleDot"),
+			     statusColorToken(selectedTheme(), "idleText"),
+			     text(TextId::NdiNotTested, language_).toHtmlEscaped()));
 	if (!ndiRuntimeAvailable_) {
 		QString hint = QString("<span style='color:#f59e0b'>&#9679;</span>"
-				       "<span style='color:#ef4444'>  %1</span><br/><span style='color:#52527a'>%2</span>")
-				   .arg(text(TextId::NdiRuntimeMissing, language_).toHtmlEscaped(),
+				       "<span style='color:%1'>  %2</span><br/><span style='color:%3'>%4</span>")
+				   .arg(statusColorToken(selectedTheme(), "errorText"),
+				        text(TextId::NdiRuntimeMissing, language_).toHtmlEscaped(),
+				        statusColorToken(selectedTheme(), "detailText"),
 				        text(TextId::NdiInstallRequired, language_).toHtmlEscaped());
 		if (!ndiRuntimeError_.trimmed().isEmpty())
-			hint += QString("<br/><span style='color:#40406a'>%1</span>").arg(ndiRuntimeError_.toHtmlEscaped());
+			hint += QString("<br/><span style='color:%1'>%2</span>")
+				.arg(statusColorToken(selectedTheme(), "idleText"),
+				     ndiRuntimeError_.toHtmlEscaped());
 		ndiRuntimeHint_->setText(hint);
 	} else {
 		ndiRuntimeHint_->clear();
 	}
 	if (hotkeyStatus_->text().isEmpty())
-		hotkeyStatus_->setText(QString("<span style='color:#40406a'>%1</span>")
-			.arg(text(TextId::HotkeyUnset, language_).toHtmlEscaped()));
-	creatorSupport_->setText(creatorSupportHtml(language_));
+		hotkeyStatus_->setText(QString("<span style='color:%1'>%2</span>")
+			.arg(statusColorToken(selectedTheme(), "idleText"),
+			     text(TextId::HotkeyUnset, language_).toHtmlEscaped()));
+	creatorSupport_->setText(creatorSupportHtml(language_, selectedTheme()));
 	updateStatus_->setText(updateStatusText_);
+}
+
+AppTheme SettingsDialog::selectedTheme() const
+{
+	return themeToggle_ && themeToggle_->isChecked() ? AppTheme::Light : AppTheme::Dark;
 }
 
 void SettingsDialog::repopulateSenderOptions(const QString &selectedSender)
@@ -778,29 +803,36 @@ void SettingsDialog::setSpoutStatus(const SpoutStatus &status)
 	QString html;
 	if (status.running && (status.connected || status.senderFound)) {
 		html = "<span style='color:#10b981'>&#9679;</span>"
-			   "<span style='color:#94a3b8'>  " + text(TextId::SpoutConnected, language_);
+			   "<span style='color:" + statusColorToken(selectedTheme(), "successText") + "'>  " + text(TextId::SpoutConnected, language_);
 		if (!status.senderName.isEmpty())
-			html += QString(" &mdash; <b style='color:#c8d4f0'>%1</b>")
-						.arg(status.senderName.toHtmlEscaped());
+			html += QString(" &mdash; <b style='color:%1'>%2</b>")
+						.arg(statusColorToken(selectedTheme(), "accentText"),
+						     status.senderName.toHtmlEscaped());
 		if (status.width > 0 && status.height > 0)
-			html += QString("  <span style='color:#52527a'>%1&times;%2</span>")
+			html += QString("  <span style='color:%1'>%2&times;%3</span>")
+						.arg(statusColorToken(selectedTheme(), "mutedText"))
 						.arg(status.width).arg(status.height);
 		if (status.fps > 0.0)
-			html += QString("  <span style='color:#52527a'>%1 FPS</span>")
+			html += QString("  <span style='color:%1'>%2 FPS</span>")
+						.arg(statusColorToken(selectedTheme(), "mutedText"))
 						.arg(status.fps, 0, 'f', 1);
 		html += "</span>";
 	} else if (status.running) {
 		html = QString("<span style='color:#f59e0b'>&#9679;</span>"
-			   "<span style='color:#52527a'>  %1</span>")
-				   .arg(text(TextId::SpoutWaiting, language_).toHtmlEscaped());
+			   "<span style='color:%1'>  %2</span>")
+				   .arg(statusColorToken(selectedTheme(), "detailText"),
+				        text(TextId::SpoutWaiting, language_).toHtmlEscaped());
 	} else {
-		html = QString("<span style='color:#2e2e50'>&#9679;</span>"
-			   "<span style='color:#40406a'>  %1</span>")
-				   .arg(text(TextId::SpoutReceiverStopped, language_).toHtmlEscaped());
+		html = QString("<span style='color:%1'>&#9679;</span>"
+			   "<span style='color:%2'>  %3</span>")
+				   .arg(statusColorToken(selectedTheme(), "idleDot"),
+				        statusColorToken(selectedTheme(), "idleText"),
+				        text(TextId::SpoutReceiverStopped, language_).toHtmlEscaped());
 	}
 	if (!status.lastError.isEmpty())
-		html += QString(" <span style='color:#ef4444'>&middot; %1</span>")
-					.arg(status.lastError.toHtmlEscaped());
+		html += QString(" <span style='color:%1'>&middot; %2</span>")
+					.arg(statusColorToken(selectedTheme(), "errorText"),
+					     status.lastError.toHtmlEscaped());
 	spoutStatus_->setText(html);
 }
 
@@ -811,29 +843,36 @@ void SettingsDialog::setNdiStatus(const NdiStatus &status)
 	QString html;
 	if (status.running && (status.connected || status.sourceFound)) {
 		html = "<span style='color:#10b981'>&#9679;</span>"
-			   "<span style='color:#94a3b8'>  " + text(TextId::NdiConnected, language_);
+			   "<span style='color:" + statusColorToken(selectedTheme(), "successText") + "'>  " + text(TextId::NdiConnected, language_);
 		if (!status.sourceName.isEmpty())
-			html += QString(" &mdash; <b style='color:#c8d4f0'>%1</b>")
-						.arg(status.sourceName.toHtmlEscaped());
+			html += QString(" &mdash; <b style='color:%1'>%2</b>")
+						.arg(statusColorToken(selectedTheme(), "accentText"),
+						     status.sourceName.toHtmlEscaped());
 		if (status.width > 0 && status.height > 0)
-			html += QString("  <span style='color:#52527a'>%1&times;%2</span>")
+			html += QString("  <span style='color:%1'>%2&times;%3</span>")
+						.arg(statusColorToken(selectedTheme(), "mutedText"))
 						.arg(status.width).arg(status.height);
 		if (status.fps > 0.0)
-			html += QString("  <span style='color:#52527a'>%1 FPS</span>")
+			html += QString("  <span style='color:%1'>%2 FPS</span>")
+						.arg(statusColorToken(selectedTheme(), "mutedText"))
 						.arg(status.fps, 0, 'f', 1);
 		html += "</span>";
 	} else if (status.running) {
 		html = QString("<span style='color:#f59e0b'>&#9679;</span>"
-			       "<span style='color:#52527a'>  %1</span>")
-				   .arg(text(TextId::NdiWaiting, language_).toHtmlEscaped());
+			       "<span style='color:%1'>  %2</span>")
+				   .arg(statusColorToken(selectedTheme(), "detailText"),
+				        text(TextId::NdiWaiting, language_).toHtmlEscaped());
 	} else {
-		html = QString("<span style='color:#2e2e50'>&#9679;</span>"
-			       "<span style='color:#40406a'>  %1</span>")
-				   .arg(text(TextId::NdiReceiverStopped, language_).toHtmlEscaped());
+		html = QString("<span style='color:%1'>&#9679;</span>"
+			       "<span style='color:%2'>  %3</span>")
+				   .arg(statusColorToken(selectedTheme(), "idleDot"),
+				        statusColorToken(selectedTheme(), "idleText"),
+				        text(TextId::NdiReceiverStopped, language_).toHtmlEscaped());
 	}
 	if (!status.lastError.isEmpty())
-		html += QString(" <span style='color:#ef4444'>&middot; %1</span>")
-					.arg(status.lastError.toHtmlEscaped());
+		html += QString(" <span style='color:%1'>&middot; %2</span>")
+					.arg(statusColorToken(selectedTheme(), "errorText"),
+					     status.lastError.toHtmlEscaped());
 	ndiStatus_->setText(html);
 }
 

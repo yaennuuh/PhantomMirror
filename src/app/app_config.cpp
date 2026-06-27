@@ -47,7 +47,7 @@ QJsonObject toJson(const AppConfig &config)
 		{"hotkey", hotkey},
 	};
 	QJsonObject debug{{"enabled", config.debug.enabled}};
-	QJsonObject ui{{"language", config.ui.language}};
+	QJsonObject ui{{"language", config.ui.language}, {"theme", config.ui.theme}};
 	QJsonObject onboarding{{"completed", config.onboarding.completed}};
 	return QJsonObject{{"overlay", overlay}, {"debug", debug}, {"ui", ui}, {"onboarding", onboarding}};
 }
@@ -95,6 +95,7 @@ AppConfig fromJson(const QJsonObject &root)
 
 	const QJsonObject ui = root.value("ui").toObject();
 	config.ui.language = normalizeAppLanguageSetting(ui.value("language").toString(config.ui.language));
+	config.ui.theme = normalizeAppThemeSetting(ui.value("theme").toString(config.ui.theme));
 
 	const QJsonObject onboarding = root.value("onboarding").toObject();
 	config.onboarding.completed = onboarding.value("completed").toBool(config.onboarding.completed);
@@ -186,6 +187,14 @@ QString normalizeAppLanguageSetting(const QString &language)
 {
 	const QString normalized = language.trimmed().toLower();
 	if (normalized == "system" || normalized == "de" || normalized == "en")
+		return normalized;
+	return QString("system");
+}
+
+QString normalizeAppThemeSetting(const QString &theme)
+{
+	const QString normalized = theme.trimmed().toLower();
+	if (normalized == "system" || normalized == "dark" || normalized == "light")
 		return normalized;
 	return QString("system");
 }
