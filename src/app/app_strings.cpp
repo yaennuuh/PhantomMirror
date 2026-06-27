@@ -1,4 +1,5 @@
 #include "app_strings.h"
+#include "theme.h"
 
 #include <QLocale>
 #include <QRect>
@@ -14,6 +15,8 @@ QString englishText(TextId id)
 	case TextId::LanguageOptionSystem: return "System";
 	case TextId::LanguageOptionGerman: return "Deutsch";
 	case TextId::LanguageOptionEnglish: return "English";
+	case TextId::ThemeOptionDark: return "Dark";
+	case TextId::ThemeOptionLight: return "Light";
 	case TextId::SettingsWindowTitle: return "Phantom Mirror Settings";
 	case TextId::SettingsHeaderTitle: return "Phantom Mirror Settings";
 	case TextId::SettingsHeaderSubtitle: return "Configure overlay and connection";
@@ -109,6 +112,8 @@ QString germanText(TextId id)
 	case TextId::LanguageOptionSystem: return "System";
 	case TextId::LanguageOptionGerman: return "Deutsch";
 	case TextId::LanguageOptionEnglish: return "English";
+	case TextId::ThemeOptionDark: return "Dunkel";
+	case TextId::ThemeOptionLight: return "Hell";
 	case TextId::SettingsWindowTitle: return "Phantom Mirror Settings";
 	case TextId::SettingsHeaderTitle: return "Phantom Mirror Settings";
 	case TextId::SettingsHeaderSubtitle: return "Overlay & Verbindung konfigurieren";
@@ -312,17 +317,25 @@ You can also check for updates directly from Settings at any time.</p>
 )html";
 }
 
-QString creatorSupportHtml(AppLanguage language)
+QString creatorSupportHtml(AppLanguage language, AppTheme theme)
 {
+	const QString textColor = theme == AppTheme::Light ? "#6b7280" : "#6b6b94";
+	const QString linkColor = theme == AppTheme::Light ? "#7c3aed" : "#a78bfa";
 	if (language == AppLanguage::German) {
-		return R"html(
-<span style="color:#6b6b94;">Phantom Mirror ist kostenlos und wird von itsBarrex zur Verfügung gestellt. Wenn dir das Tool gefällt, unterstütze das Projekt mit einem Follow auf Twitch. <a href="https://www.twitch.tv/itsbarrex" style="color:#a78bfa; text-decoration:none; font-weight:600;">Neue Features live auf Twitch ansehen</a></span>
-)html";
+		return QString(
+			"<span style=\"color:%1;\">Phantom Mirror ist kostenlos und wird von itsBarrex zur Verfügung gestellt. "
+			"Wenn dir das Tool gefällt, unterstütze das Projekt mit einem Follow auf Twitch. "
+			"<a href=\"https://www.twitch.tv/itsbarrex\" style=\"color:%2; text-decoration:none; font-weight:600;\">"
+			"Neue Features live auf Twitch ansehen</a></span>")
+			.arg(textColor, linkColor);
 	}
 
-	return R"html(
-<span style="color:#6b6b94;">Phantom Mirror is free and provided by itsBarrex. If you like the tool, support the project with a follow on Twitch. <a href="https://www.twitch.tv/itsbarrex" style="color:#a78bfa; text-decoration:none; font-weight:600;">Watch new features live on Twitch</a></span>
-)html";
+	return QString(
+		"<span style=\"color:%1;\">Phantom Mirror is free and provided by itsBarrex. "
+		"If you like the tool, support the project with a follow on Twitch. "
+		"<a href=\"https://www.twitch.tv/itsbarrex\" style=\"color:%2; text-decoration:none; font-weight:600;\">"
+		"Watch new features live on Twitch</a></span>")
+		.arg(textColor, linkColor);
 }
 
 QString formatUpdatePrompt(AppLanguage language, const QString &version)

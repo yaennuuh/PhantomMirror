@@ -1,4 +1,5 @@
 #include "toggle_switch.h"
+#include "theme.h"
 
 #include <QEnterEvent>
 #include <QPainter>
@@ -43,8 +44,8 @@ void ToggleSwitch::paintEvent(QPaintEvent *)
 	QPainter p(this);
 	p.setRenderHint(QPainter::Antialiasing);
 
-	// Interpolate track color: off=#222236, on=#7c3aed
-	const QColor off(0x22, 0x22, 0x36);
+	const bool lightTheme = currentAppTheme() == AppTheme::Light;
+	const QColor off = lightTheme ? QColor("#cbd5e1") : QColor(0x22, 0x22, 0x36);
 	const QColor on(0x7c, 0x3a, 0xed);
 	auto lerp = [](int a, int b, qreal t) { return qRound(a + (b - a) * t); };
 	QColor track(lerp(off.red(), on.red(), thumbPos_),
@@ -68,16 +69,18 @@ void ToggleSwitch::paintEvent(QPaintEvent *)
 	p.setPen(Qt::NoPen);
 	// Shadow
 	if (isEnabled()) {
-		p.setBrush(QColor(0, 0, 0, 40));
+		p.setBrush(lightTheme ? QColor(15, 23, 42, 28) : QColor(0, 0, 0, 40));
 		p.drawEllipse(QRectF(tx + 0.5, ty2 + 1.5, kThumb, kThumb));
 	}
 	// Thumb fill
-	p.setBrush(isEnabled() ? Qt::white : QColor(0x44, 0x44, 0x60));
+	p.setBrush(isEnabled() ? Qt::white : (lightTheme ? QColor("#e2e8f0") : QColor(0x44, 0x44, 0x60)));
 	p.drawEllipse(QRectF(tx, ty2, kThumb, kThumb));
 
 	// Label
 	if (!text().isEmpty()) {
-		p.setPen(isEnabled() ? QColor(0xd4, 0xd4, 0xe8) : QColor(0x44, 0x44, 0x60));
+		p.setPen(isEnabled()
+			? (lightTheme ? QColor("#334155") : QColor(0xd4, 0xd4, 0xe8))
+			: (lightTheme ? QColor("#94a3b8") : QColor(0x44, 0x44, 0x60)));
 		p.setFont(font());
 		p.drawText(QRect(kTrackW + kGap, 0, width() - kTrackW - kGap, height()),
 				   Qt::AlignLeft | Qt::AlignVCenter, text());

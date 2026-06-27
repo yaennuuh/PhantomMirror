@@ -32,6 +32,7 @@ protected:
 
 private:
 	void applyLanguage();
+	void applyTheme();
 	void applyOverlayVisibility();
 	void toggleOverlayVisibility();
 	void refreshHotkeyRegistration();

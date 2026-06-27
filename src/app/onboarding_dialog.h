@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app_strings.h"
+#include "theme.h"
 
 #include <QDialog>
 
@@ -17,6 +18,7 @@ public:
 	explicit OnboardingDialog(QWidget *parent = nullptr);
 	void setLanguage(AppLanguage language);
 	void setLanguageSetting(const QString &languageSetting);
+	void setTheme(AppTheme theme);
 
 signals:
 	void completed();
@@ -27,6 +29,7 @@ private:
 
 	AppLanguage language_ = AppLanguage::English;
 	bool syncingLanguageSelector_ = false;
+	AppTheme theme_ = AppTheme::Dark;
 	QComboBox *languageSelector_ = nullptr;
 	QLabel *headerTitle_ = nullptr;
 	QLabel *headerSubtitle_ = nullptr;

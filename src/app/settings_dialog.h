@@ -4,6 +4,8 @@
 #include "ndi_controller.h"
 #include "app_strings.h"
 #include "spout_controller.h"
+#include "theme.h"
+#include "theme_toggle.h"
 #include "toggle_switch.h"
 
 #include <QDialog>
@@ -34,6 +36,7 @@ public:
 signals:
 	void configSaved(const AppConfig &config);
 	void languageChanged(const QString &languageSetting);
+	void themeChanged(const QString &themeSetting);
 	void onboardingRequested();
 	void spoutSendersRefreshRequested();
 	void spoutTestRequested();
@@ -44,6 +47,7 @@ signals:
 
 private:
 	void setLanguage(AppLanguage language);
+	AppTheme selectedTheme() const;
 	void retranslateUi();
 	void repopulateSenderOptions(const QString &selectedSender);
 	void repopulateNdiSourceOptions(const QString &selectedSource);
@@ -65,6 +69,7 @@ private:
 	QLabel *headerSubtitle_ = nullptr;
 	QLabel *versionLabel_ = nullptr;
 	QComboBox *languageSelector_ = nullptr;
+	ThemeToggle *themeToggle_ = nullptr;
 	QLabel *inputSectionTitle_ = nullptr;
 	QComboBox *inputModeSelector_ = nullptr;
 	QLabel *inputModeLabel_ = nullptr;

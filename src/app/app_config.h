@@ -50,6 +50,7 @@ struct DebugConfig {
 
 struct UiConfig {
 	QString language = "system";
+	QString theme = "system";
 };
 
 struct OnboardingConfig {
@@ -71,6 +72,7 @@ int viewportAnchorIndex(const QString &anchor);
 QStringList viewportAnchors();
 QString normalizeAnchor(const QString &anchor);
 QString normalizeAppLanguageSetting(const QString &language);
+QString normalizeAppThemeSetting(const QString &theme);
 QString overlayInputModeToString(OverlayInputMode mode);
 OverlayInputMode overlayInputModeFromString(const QString &value);
 QStringList normalizeHotkeyModifiers(const QStringList &modifiers);

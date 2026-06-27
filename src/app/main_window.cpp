@@ -2,6 +2,7 @@
 #include "main_window.h"
 
 #include "app_strings.h"
+#include "theme.h"
 #include "../native/ndi_overlay.h"
 #include "../native/spout_overlay.h"
 
@@ -151,6 +152,7 @@ MainWindow::MainWindow(QWidget *parent)
 	settings_.setAvailableSenders(spout_.availableSenders());
 	settings_.setAvailableNdiSources(ndi_.availableSources());
 	settings_.setConfig(config_);
+	applyTheme();
 	onboarding_.setLanguage(language_);
 	onboarding_.setLanguageSetting(config_.ui.language);
 	updater_.setLanguage(language_);
@@ -175,6 +177,15 @@ MainWindow::MainWindow(QWidget *parent)
 			return;
 		}
 		applyLanguage();
+	});
+	connect(&settings_, &SettingsDialog::themeChanged, this, [this](const QString &themeSetting) {
+		config_.ui.theme = normalizeAppThemeSetting(themeSetting);
+		QString error;
+		if (!saveConfig(config_, &error)) {
+			settings_.setUpdateStatus(formatSaveError(language_, error));
+			return;
+		}
+		applyTheme();
 	});
 	connect(&settings_, &SettingsDialog::spoutTestRequested, this, [this]() {
 		settings_.setSpoutStatus(spout_.status());
@@ -489,6 +500,13 @@ void MainWindow::applyLanguage()
 		checkUpdatesAction_->setText(text(TextId::TrayCheckForUpdates, language_));
 	if (quitAction_)
 		quitAction_->setText(text(TextId::TrayQuit, language_));
+}
+
+void MainWindow::applyTheme()
+{
+	applyAppTheme(*qApp, resolveAppTheme(config_.ui.theme));
+	settings_.setConfig(config_);
+	onboarding_.setTheme(resolveAppTheme(config_.ui.theme));
 }
 
 void MainWindow::startOverlay()

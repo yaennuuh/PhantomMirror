@@ -38,9 +38,9 @@ OnboardingDialog::OnboardingDialog(QWidget *parent)
 		auto *tv = new QVBoxLayout();
 		tv->setSpacing(3);
 		headerTitle_ = new QLabel(hdr);
-		headerTitle_->setStyleSheet("font-size:17px;font-weight:700;color:#e8e8f8;");
+		headerTitle_->setObjectName("headerTitle");
 		headerSubtitle_ = new QLabel(hdr);
-		headerSubtitle_->setStyleSheet("font-size:12px;color:#44446a;");
+		headerSubtitle_->setObjectName("headerSubtitle");
 		tv->addWidget(headerTitle_);
 		tv->addWidget(headerSubtitle_);
 
@@ -65,17 +65,7 @@ OnboardingDialog::OnboardingDialog(QWidget *parent)
 	// ── Content ───────────────────────────────────────────────────────────
 	content_ = new QTextBrowser(this);
 	content_->setOpenExternalLinks(true);
-	content_->document()->setDefaultStyleSheet(R"(
-		body  { color:#b0b0cc; font-family:'Segoe UI Variable Text','Segoe UI'; font-size:13px; margin:2px 4px; }
-		h3    { color:#8b5cf6; font-size:10px; font-weight:700; margin:18px 0 6px 0; letter-spacing:1.4px; }
-		p     { color:#8080a8; margin:0 0 8px 0; line-height:1.65; }
-		ul    { color:#8080a8; margin:0 0 8px 16px; padding:0; }
-		li    { margin:3px 0; line-height:1.65; }
-		b     { color:#c8d4f0; font-weight:600; }
-		code  { background-color:#1a1a2a; color:#a78bfa; padding:2px 8px;
-		        border-radius:5px; font-size:12px; font-family:'Cascadia Code','Consolas',monospace; }
-		a     { color:#7c3aed; text-decoration:none; }
-	)");
+	content_->document()->setDefaultStyleSheet(onboardingDocumentStyleSheet(theme_));
 	root->addWidget(content_, 1);
 
 	root->addWidget(makeSep());
@@ -130,6 +120,15 @@ void OnboardingDialog::setLanguageSetting(const QString &languageSetting)
 	syncingLanguageSelector_ = true;
 	languageSelector_->setCurrentIndex(qMax(0, languageSelector_->findData(normalizeAppLanguage(languageSetting))));
 	syncingLanguageSelector_ = false;
+}
+
+void OnboardingDialog::setTheme(AppTheme theme)
+{
+	if (theme_ == theme)
+		return;
+	theme_ = theme;
+	content_->document()->setDefaultStyleSheet(onboardingDocumentStyleSheet(theme_));
+	content_->setHtml(onboardingHtml(language_));
 }
 
 void OnboardingDialog::retranslateUi()

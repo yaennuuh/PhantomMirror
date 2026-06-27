@@ -1,4 +1,5 @@
 #include "arrow_combo_box.h"
+#include "theme.h"
 
 #include <QPaintEvent>
 #include <QPainter>
@@ -22,7 +23,8 @@ void ArrowComboBox::paintEvent(QPaintEvent *event)
 	painter.drawControl(QStyle::CE_ComboBoxLabel, option);
 
 	painter.setRenderHint(QPainter::Antialiasing, true);
-	painter.setPen(QPen(QColor("#dde3f0"), 2.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+	const QColor arrowColor = currentAppTheme() == AppTheme::Light ? QColor("#475569") : QColor("#dde3f0");
+	painter.setPen(QPen(arrowColor, 2.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 
 	const int iconSize = 8;
 	const int centerX = width() - 18;

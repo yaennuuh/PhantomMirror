@@ -1,5 +1,7 @@
 #pragma once
 
+#include "theme.h"
+
 #include <QString>
 
 class QScreen;
@@ -15,6 +17,8 @@ enum class TextId {
 	LanguageOptionSystem,
 	LanguageOptionGerman,
 	LanguageOptionEnglish,
+	ThemeOptionDark,
+	ThemeOptionLight,
 	SettingsWindowTitle,
 	SettingsHeaderTitle,
 	SettingsHeaderSubtitle,
@@ -106,7 +110,7 @@ QString normalizeAppLanguage(const QString &setting);
 QString text(TextId id, AppLanguage language);
 QString monitorLabel(QScreen *screen, int index, AppLanguage language);
 QString onboardingHtml(AppLanguage language);
-QString creatorSupportHtml(AppLanguage language);
+QString creatorSupportHtml(AppLanguage language, AppTheme theme);
 QString formatUpdatePrompt(AppLanguage language, const QString &version);
 QString formatUpdateAvailableStatus(AppLanguage language, const QString &version);
 QString formatOnboardingSaveError(AppLanguage language, const QString &error);
